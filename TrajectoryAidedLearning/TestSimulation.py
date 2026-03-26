@@ -37,6 +37,8 @@ class TestSimulation():
         self.map_name = None
         self.reward = None
         self.noise_rng = None
+        self.noise_std = 0
+        self.lidar_noise_std = 0
 
         # flags 
         self.vehicle_state_history = None
@@ -52,9 +54,12 @@ class TestSimulation():
             torch.use_deterministic_algorithms(True)
             torch.manual_seed(seed)
 
-            if run.noise_std > 0:
-                self.noise_std = run.noise_std
+            self.noise_std = getattr(run, "noise_std", 0)
+            self.lidar_noise_std = getattr(run, "lidar_noise_std", 0)
+            if self.noise_std > 0 or self.lidar_noise_std > 0:
                 self.noise_rng = np.random.default_rng(seed=seed)
+            else:
+                self.noise_rng = None
 
             self.env = F110Env(map=run.map_name)
             self.map_name = run.map_name
@@ -157,7 +162,10 @@ class TestSimulation():
         observation = {}
         observation['current_laptime'] = obs['lap_times'][0]
         observation['scan'] = obs['scans'][0] #TODO: introduce slicing here
-        
+        if self.noise_rng and self.lidar_noise_std > 0:
+            scan_noise = self.noise_rng.normal(scale=self.lidar_noise_std, size=observation['scan'].shape)
+            observation['scan'] = np.clip(observation['scan'] + scan_noise, 0.0, 30.0)
+
         if self.noise_rng:
             noise = self.noise_rng.normal(scale=self.noise_std, size=2)
         else: noise = np.zeros(2)

@@ -49,6 +49,13 @@ class TrainSimulation(TestSimulation):
             torch.use_deterministic_algorithms(True)
             torch.manual_seed(seed)
 
+            self.noise_std = getattr(run, "noise_std", 0)
+            self.lidar_noise_std = getattr(run, "lidar_noise_std", 0)
+            if self.noise_std > 0 or self.lidar_noise_std > 0:
+                self.noise_rng = np.random.default_rng(seed=seed)
+            else:
+                self.noise_rng = None
+
             self.env = F110Env(map=run.map_name)
             self.map_name = run.map_name
             self.n_train_steps = run.n_train_steps

@@ -17,8 +17,7 @@ WORKDIR /app
 RUN git clone https://github.com/GreyViperTooth/TrajectoryAidedLearning.git . && \
     mkdir -p Data/Vehicles && \
     sed -i 's/"_actor\.pth")/"_actor.pth", weights_only=False)/g' TrajectoryAidedLearning/Planners/AgentPlanners.py && \
-    sed -i 's/^SHOW_TRAIN = False/SHOW_TRAIN = True/' TrajectoryAidedLearning/TrainAgents.py && \
-    sed -i 's/if run\.noise_std > 0:/if getattr(run, "noise_std", 0) > 0:/g' TrajectoryAidedLearning/TestSimulation.py
+    sed -i 's/^SHOW_TRAIN = False/SHOW_TRAIN = True/' TrajectoryAidedLearning/TrainAgents.py
 
 RUN pip3 install torch torchvision --index-url https://download.pytorch.org/whl/cpu && \
     pip3 install numpy "gym==0.21.0" Pillow "pyglet==1.5.27" matplotlib scipy pyyaml numba && \

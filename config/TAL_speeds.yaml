@@ -11,6 +11,10 @@ set_n: 1
 
 random_seed: 10000
 
+# Noise for robust training: position uncertainty + LIDAR sensor noise
+noise_std: 0.1        # Gaussian noise on x,y position estimate (metres)
+lidar_noise_std: 0.05 # Gaussian noise on LIDAR range readings (metres)
+
 n_train_steps: 100000
 n_test_laps: 20
 # n_test_laps: 50
