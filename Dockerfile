@@ -26,7 +26,8 @@ RUN pip3 install torch torchvision --index-url https://download.pytorch.org/whl/
 
 COPY start.sh /start.sh
 COPY start_test.sh /start_test.sh
-RUN chmod +x /start.sh /start_test.sh
+COPY start_train_extended.sh /start_train_extended.sh
+RUN chmod +x /start.sh /start_test.sh /start_train_extended.sh
 
 EXPOSE 6080
 
