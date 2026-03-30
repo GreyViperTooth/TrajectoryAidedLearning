@@ -90,7 +90,7 @@ See [`docs/gui.md`](docs/gui.md) for details.
 
 ---
 
-## Citation
+## Citation (Original)
 
 ```bibtex
 @ARTICLE{10182327,
