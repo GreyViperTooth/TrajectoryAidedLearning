@@ -1,76 +1,102 @@
-# TrajectoryAidedLearning
+# Trajectory-Aided Learning — Extended Fork
 
-This repo contains the source code for the paper entitled, "[High-speed Autonomous Racing using Trajectory-aided Deep Reinforcement Learning](https://ieeexplore.ieee.org/document/10182327)"
+Based on the paper [High-speed Autonomous Racing using Trajectory-Aided Deep Reinforcement Learning](https://ieeexplore.ieee.org/document/10182327) (Evans et al., IEEE RA-L 2023).
 
-We present a reward signal that incorporates an optimal trajectory to train deep reinforcement learning agents for high-speed autonomous racing.
+This fork extends the original with:
+- **Dockerised environment** — runs on any machine with Docker, visualised in a browser via noVNC
+- **Observation noise** — Gaussian noise on position and LIDAR readings for robust controller training
+- **Interactive GUI** — browser-based test runner with live metrics and lap log
 
-![](Data/tal_calculation.png)
+---
 
-Training agents with our reward signal results in significatly improved training performance.
-The most noteable performance difference is at high-speeds where previous rewards failed.
+## How it works
 
-![](Data/TAL_vs_baseline_reward.png)
+TAL trains a TD3 agent to race at high speed by incorporating the optimal racing line into the reward signal. Rather than rewarding raw progress, the agent is penalised for deviating from the trajectory and rewarded for completing laps fast.
 
-The improved training results in higher average progrresses at high speeds.
+![TAL reward visualisation](Data/tal_calculation.png)
 
-![](Data/tal_progress.png)
+TAL significantly outperforms baseline rewards at high speeds where pure progress rewards fail.
 
-# Result Generation
+![TAL vs baseline](Data/TAL_vs_baseline_reward.png)
 
-The results in the paper are generated through a two step process of:
-1. Train and test the agents
-2. Process and plot the data
+---
 
-For every test:
-- Run calculate_statistics
-- Run calculate_averages
+## Quick start
 
-## Tests:
+Requires [Docker Desktop](https://www.docker.com/products/docker-desktop/).
 
-### Maximum Speed Investigation
+```bash
+git clone https://github.com/GreyViperTooth/TrajectoryAidedLearning.git
+cd TrajectoryAidedLearning
 
-- Aim: Understand how performance changes with different speeds.
-- Config files: CthSpeeds, TAL_speeds 
-- Results: 
-    - Training graph: Cth_TAL_speeds_TrainingGraph
-    - Lap times and % success: Cth_TAL_speeds_Barplot
+docker build -t tal-racing .
+```
 
-### 6 m/s Performance Comparision 
+### Train
+```bash
+docker run -d --name tal-train -p 6080:6080 -v tal-data:/app/Data tal-racing
+```
 
-- Aim: Compare the baseline and TAL on different maps with a maximum speed of 6 m/s.
-- Config file: Cth_maps, TAL_maps
-- Results:
-    - Training graphs: TAL_Cth_maps_TrainingGraph
-    - Lap times and success bar plot: TAL_Cth_maps_Barplot
+### Test (interactive GUI)
+```bash
+docker run --rm --name tal-test -p 6080:6080 -v tal-data:/app/Data tal-racing /start_test.sh
+```
 
-### Speed Profile Analysis 
+Open **`http://localhost:6080/vnc.html`** and click Connect.
+The training/test simulation appears as a live window in the browser.
 
-- Aim: Study the speed profiles
-- Requires the pure pursuit (PP_speeds) results
-- Results:
-    - Trajectories: GenerateVelocityProfiles, set the folder to TAL_speeds
-    - Speed profile pp TAL: TAL_speed_profiles
-    - Speed profile x3: TAL_speed_profiles 
-    - Slip profile: TAL_speed_profiles
+> **Note:** `-v tal-data:/app/Data` mounts a named Docker volume so trained weights persist across container restarts.
 
-### Comparison with Literatures
+---
 
-- Aim: Compare our method with the literature
-- Results:
-    - Bar plot: LiteratureComparison
-- Note that the results from the literature are hard coded.
+## Training configurations
 
-![](Data/animation.gif)
+| Config file | What it trains | Maps | Speeds |
+|---|---|---|---|
+| `TAL_speeds.yaml` | Speed sensitivity study | Spain (f1_esp) | 4, 5, 6, 7 m/s |
+| `TAL_maps.yaml` | Cross-track generalisation | Spain, Monaco, Austria, GB | 6 m/s |
+| `Cth_speeds.yaml` | CTH baseline (comparison) | Spain | 4–8 m/s |
 
+Each config runs 4–5 random seeds for statistical robustness. Training one full config takes ~8–10 hours on CPU.
+
+See [`docs/training.md`](docs/training.md) for configuration options and how to add new tracks or speeds.
+
+---
+
+## Observation noise
+
+This fork adds configurable sensor noise to train more robust controllers:
+
+| Parameter | Default | Effect |
+|---|---|---|
+| `noise_std` | `0.1 m` | Gaussian noise on x/y position estimate |
+| `lidar_noise_std` | `0.05 m` | Gaussian noise on each LIDAR range reading |
+
+Noise is active during both training and evaluation. Set either to `0` in the config YAML to disable. See [`docs/noise.md`](docs/noise.md).
+
+---
+
+## GUI test controller
+
+After training, launch `/start_test.sh` to open the interactive controller in the browser:
+
+- Select map and max speed from dropdowns
+- Set number of test laps
+- Start / Stop the agent mid-run
+- Live metrics: current lap time, best/avg lap, completion rate, crash count
+- Scrolling lap log with ✓/✗ per lap
+
+See [`docs/gui.md`](docs/gui.md) for details.
+
+---
 
 ## Citation
 
-If you find this work useful, please consider citing:
-```
+```bibtex
 @ARTICLE{10182327,
     author={Evans, Benjamin David and Engelbrecht, Herman Arnold and Jordaan, Hendrik Willem},
-    journal={IEEE Robotics and Automation Letters}, 
-    title={High-Speed Autonomous Racing Using Trajectory-Aided Deep Reinforcement Learning}, 
+    journal={IEEE Robotics and Automation Letters},
+    title={High-Speed Autonomous Racing Using Trajectory-Aided Deep Reinforcement Learning},
     year={2023},
     volume={8},
     number={9},

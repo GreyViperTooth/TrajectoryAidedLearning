@@ -6,7 +6,7 @@ ENV LIBGL_ALWAYS_SOFTWARE=1
 ENV MESA_GL_VERSION_OVERRIDE=3.3
 
 RUN apt-get update && apt-get install -y \
-    python3 python3-pip git \
+    python3 python3-pip python3-tk git \
     xvfb x11vnc novnc websockify \
     libgl1-mesa-glx libgl1-mesa-dri libgles2-mesa libglu1-mesa libosmesa6 \
     libxrandr2 libxi6 \
@@ -26,6 +26,7 @@ RUN pip3 install torch torchvision --index-url https://download.pytorch.org/whl/
 COPY start.sh /start.sh
 COPY start_test.sh /start_test.sh
 COPY start_train_extended.sh /start_train_extended.sh
+COPY gui_test.py /app/gui_test.py
 RUN chmod +x /start.sh /start_test.sh /start_train_extended.sh
 
 EXPOSE 6080
